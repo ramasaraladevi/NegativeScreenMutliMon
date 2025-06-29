@@ -22,6 +22,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Threading;
 
 namespace NegativeScreen
 {
@@ -65,7 +66,12 @@ namespace NegativeScreen
 		private bool resolutionHasChanged = false;
 
 		private NotifyIcon notifyIcon;
-		private ContextMenuStrip contextMenu;
+                private ContextMenuStrip contextMenu;
+
+                private WindowOverlay windowOverlay;
+                private Timer brightnessTimer;
+                private IntPtr monitoredWindow = IntPtr.Zero;
+                private const float BRIGHTNESS_THRESHOLD = 0.8f;
         
         private void CycleMonitors()
         {
@@ -425,6 +431,32 @@ namespace NegativeScreen
             notifyIcon.Dispose();
             this.Dispose();
             Application.Exit();
+        }
+
+        public void StartWindowMonitor(IntPtr hwnd)
+        {
+            monitoredWindow = hwnd;
+            brightnessTimer = new Timer(CheckWindowBrightness, null, 0, 1000);
+        }
+
+        private void CheckWindowBrightness(object state)
+        {
+            float brightness = WindowBrightnessWatcher.GetAverageBrightness(monitoredWindow);
+            if (brightness > BRIGHTNESS_THRESHOLD)
+            {
+                if (windowOverlay == null)
+                {
+                    windowOverlay = new WindowOverlay(monitoredWindow);
+                }
+            }
+            else
+            {
+                if (windowOverlay != null)
+                {
+                    windowOverlay.Dispose();
+                    windowOverlay = null;
+                }
+            }
         }
 
 	}

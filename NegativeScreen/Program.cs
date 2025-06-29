@@ -53,9 +53,18 @@ To avoid known bugs relative to the used APIs, please instead run the 64 bits co
 			//without this call, and with custom DPI settings,
 			//the magnified window is either partially out of the screen,
 			//or blurry, if the transformation scale is forced to 1.
-			NativeMethods.SetProcessDPIAware();
-			OverlayManager manager = new OverlayManager();
-		}
+                        NativeMethods.SetProcessDPIAware();
+                        OverlayManager manager = new OverlayManager();
+
+                        if (args.Length > 0)
+                        {
+                                IntPtr hwnd = NativeMethods.FindWindow(null, args[0]);
+                                if (hwnd != IntPtr.Zero)
+                                {
+                                        manager.StartWindowMonitor(hwnd);
+                                }
+                        }
+                }
 
 		private static bool IsAnotherInstanceAlreadyRunning()
 		{
